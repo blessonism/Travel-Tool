@@ -13,7 +13,7 @@ export const input = z
       .string()
       .min(1, { message: "Please specify a budget range" }), // 使用字符串而不是数字
     travelType: z.string().min(1, { message: "Please select a travel type" }), // 添加 travelType 字段
-    activities: z.array(z.string()),
+    interests: z.array(z.string()),
   })
   .refine(({ endDate, startDate }) => new Date(endDate) > new Date(startDate), {
     message: "End date must be after start date",
@@ -52,8 +52,11 @@ export const createItineraries = z.object({
   startDate: z.string().min(1),
   endDate: z.string().min(1),
   firstTimeVisiting: z.boolean(),
-  plannedSpending: z.number().optional(),
+  plannedSpending: z
+    .string()
+    .min(1, { message: "Please specify a budget range" }),
   travelType: z.string().min(1, { message: "Please select a travel type" }),
+  interests: z.array(z.string()), // 添加兴趣数组
   days: z.array(
     z.object({
       date: z.string().min(1),
@@ -69,30 +72,8 @@ export const createItineraries = z.object({
   activated: z.boolean().default(false),
 });
 
-export const itineraries = z.object({
+export const itineraries = createItineraries.deepPartial().extend({
   id: z.string().min(1),
-  title: z.string().min(1),
-  destination: z.string().min(1),
-  description: z.string().min(1),
-  startDate: z.string().min(1),
-  endDate: z.string().min(1),
-  // numPeople: z.number().min(1),
-  firstTimeVisiting: z.boolean(),
-  plannedSpending: z.number().optional(),
-  travelType: z.string().min(1, { message: "Please select a travel type" }), // 添加 travelType 字段
-  days: z.array(
-    z.object({
-      date: z.string().min(1),
-      activities: z.array(
-        z.object({
-          time: z.string().min(1),
-          description: z.string().min(1),
-          title: z.string().min(1),
-        })
-      ),
-    })
-  ),
-  activated: z.boolean().default(false),
 });
 
 export type Input = z.infer<typeof input>;

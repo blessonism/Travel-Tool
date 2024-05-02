@@ -23,9 +23,9 @@ export default function Form(props: FormProps) {
   });
 
   const [travelType, setTravelType] = useState("");
-  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
-  const activities = [
+  const interests = [
     "Beaches",
     "City sightseeing",
     "Outdoor adventures",
@@ -39,8 +39,8 @@ export default function Form(props: FormProps) {
   type BudgetRange = "0 - 1000" | "1000 - 2500" | "2500+";
 
   useEffect(() => {
-    setValue("activities", selectedActivities);
-  }, [selectedActivities, setValue]);
+    setValue("interests", selectedInterests);
+  }, [selectedInterests, setValue]);
 
   const [budgetRange, setBudgetRange] = useState<BudgetRange | "">("");
 
@@ -50,7 +50,7 @@ export default function Form(props: FormProps) {
   };
 
   const toggleActivity = (activity: string) => {
-    setSelectedActivities((prev) =>
+    setSelectedInterests((prev) =>
       prev.includes(activity)
         ? prev.filter((a) => a !== activity)
         : [...prev, activity]
@@ -147,18 +147,18 @@ export default function Form(props: FormProps) {
       </label>
       {/* Activity selection buttons */}
       <div className="grid grid-cols-4 gap-4 mt-4">
-        {activities.map((activity) => (
+        {interests.map((interests) => (
           <button
-            key={activity}
+            key={interests}
             type="button"
-            onClick={() => toggleActivity(activity)}
+            onClick={() => toggleActivity(interests)}
             className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
-              selectedActivities.includes(activity)
+              selectedInterests.includes(interests)
                 ? "bg-blue-500 text-white"
                 : "bg-gray-100 hover:bg-gray-200"
             } w-32 h-16`} // 控制最大宽度，以保持按钮不会过宽
           >
-            {activity}
+            {interests}
           </button>
         ))}
       </div>
