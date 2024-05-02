@@ -12,7 +12,7 @@ type ItineraryProps = {
 
 export default function Itinerary(props: ItineraryProps) {
   return (
-    <section className="flex flex-col gap-4 items-start flex-1">
+    <section className="flex flex-col gap-4 items-start flex-1 w-full max-w-none h-auto">
       <ModalTrigger
         label="What's next?"
         className="px-4 py-2 text-white rounded bg-gradient-to-br from-blue-400 to-indigo-500"
@@ -64,7 +64,10 @@ export default function Itinerary(props: ItineraryProps) {
           </Dialog>
         )}
       </ModalTrigger>
-      <div className="flex flex-col gap-4 items-start lg:overflow-auto lg:max-h-[calc(100vh_-_375px)] pr-6">
+      <div
+        style={{ width: "30vw" }}
+        className="flex flex-col gap-4 items-start lg:overflow-auto lg:max-h-[calc(125vh)] pr-6"
+      >
         {props.itinerary.days.map((day, index) => (
           <section key={index} className="flex flex-col">
             <h3 className="text-xl font-bold pb-2">
