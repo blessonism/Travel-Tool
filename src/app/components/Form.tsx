@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { input, Input } from "../schema";
 import DateRangePicker from "@/components/DateRangePicker";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
 
@@ -22,32 +22,115 @@ export default function Form(props: FormProps) {
     resolver: zodResolver(input),
   });
 
+  const [travelType, setTravelType] = useState("");
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+
+  const activities = [
+    "Beaches",
+    "City sightseeing",
+    "Outdoor adventures",
+    "Festivals",
+    "Food exploration",
+    "Nightlife",
+    "Shopping",
+    "Spa wellness",
+  ];
+
+  type BudgetRange = "0 - 1000" | "1000 - 2500" | "2500+";
+
+  useEffect(() => {
+    setValue("activities", selectedActivities);
+  }, [selectedActivities, setValue]);
+
+  const [budgetRange, setBudgetRange] = useState<BudgetRange | "">("");
+
+  const handleTravelTypeClick = (type: string) => {
+    setTravelType(type);
+    setValue("travelType", type);
+  };
+
+  const toggleActivity = (activity: string) => {
+    setSelectedActivities((prev) =>
+      prev.includes(activity)
+        ? prev.filter((a) => a !== activity)
+        : [...prev, activity]
+    );
+  };
+
+  // 正确定义 handleSelectBudget 函数
+  const handleSelectBudget = (range: BudgetRange) => {
+    // 明确参数类型
+    setBudgetRange(range);
+    setValue("plannedSpending", range);
+  };
   return (
     <form
       onSubmit={handleSubmit(props.onSubmit)}
-      className="flex flex-col gap-2 lg:min-w-[400px]"
+      //className="flex flex-col gap-2 lg:min-w-[400px]"
+      className="flex flex-col gap-2 lg:min-w-[400px] bg-white p-4 shadow-lg rounded-lg"
+      //className="flex flex-col gap-2 lg:min-w-[400px] bg-white p-4 shadow-lg rounded-lg"
     >
-      <label>What city are you going to?</label>
+      <label className="font-semibold">What city are you going to?</label>
       <input
         {...register("destination")}
-        className="border border-gray-400 p-2 rounded"
+        className="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-indigo-500 transition"
         placeholder="Barcelona"
       />
-      <p className="text-red-500">{errors.destination?.message}</p>
+      <p className="text-red-500 text-sm">{errors.destination?.message}</p>
 
-      <label>How many people are going?</label>
-      <input
-        {...register("numPeople", { valueAsNumber: true })}
-        type="number"
-        className="border border-gray-400 p-2 rounded"
-        placeholder="2"
-        min="1" // This sets the minimum value that can be entered
-        step="1" // This restricts input to whole numbers only
-      />
+      {/* Hidden input field for travel type */}
+      <input type="hidden" {...register("travelType")} value={travelType} />
+      <label className="font-semibold mt-4">
+        Who do you plan on traveling with on your next adventure?
+      </label>
+      <div className="grid grid-cols-4 gap-4">
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
+            travelType === "solo"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          } w-32 h-16`}
+          onClick={() => handleTravelTypeClick("solo")}
+        >
+          Solo 独自
+        </button>
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
+            travelType === "couple"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          } w-32 h-16`}
+          onClick={() => handleTravelTypeClick("couple")}
+        >
+          Couple 情侣
+        </button>
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
+            travelType === "family"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          } w-32 h-16`}
+          onClick={() => handleTravelTypeClick("family")}
+        >
+          Family 家庭
+        </button>
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
+            travelType === "friends"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          } w-32 h-16`}
+          onClick={() => handleTravelTypeClick("friends")}
+        >
+          Friends 朋友
+        </button>
+      </div>
 
-      <p className="text-red-500">{errors.numPeople?.message}</p>
-
-      <label>First time visiting?</label>
+      <label className="font-semibold mt-4">First time visiting?</label>
       <select
         {...register("firstTimeVisiting", {
           setValueAs: (v) => v === "true", // Converts the string 'true' to boolean true
@@ -59,16 +142,76 @@ export default function Form(props: FormProps) {
       </select>
       <p className="text-red-500">{errors.firstTimeVisiting?.message}</p>
 
-      <label>How much do you plan to spend on this trip? (Optional)</label>
-      <input
-        {...register("plannedSpending", { valueAsNumber: true })}
-        type="number"
-        className="border border-gray-400 p-2 rounded"
-        placeholder="Amount in your currency"
-      />
+      <label className="font-semibold mt-4">
+        Which activities are you interested in?
+      </label>
+      {/* Activity selection buttons */}
+      <div className="grid grid-cols-4 gap-4 mt-4">
+        {activities.map((activity) => (
+          <button
+            key={activity}
+            type="button"
+            onClick={() => toggleActivity(activity)}
+            className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
+              selectedActivities.includes(activity)
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 hover:bg-gray-200"
+            } w-32 h-16`} // 控制最大宽度，以保持按钮不会过宽
+          >
+            {activity}
+          </button>
+        ))}
+      </div>
+
+      <label className="font-semibold mt-4">What is Your Budget?</label>
+      {/* <p>
+        The budget is exclusively allocated for activities and dining purposes.
+      </p> */}
+      <div className="grid grid-cols-3 gap-4">
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
+            budgetRange === "0 - 1000"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          }`}
+          onClick={() => handleSelectBudget("0 - 1000")}
+        >
+          Low
+          <br />0 - 1000 USD
+        </button>
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
+            budgetRange === "1000 - 2500"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          }`}
+          onClick={() => handleSelectBudget("1000 - 2500")}
+        >
+          Medium
+          <br />
+          1000 - 2500 USD
+        </button>
+        <button
+          type="button"
+          className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
+            budgetRange === "2500+"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          }`}
+          onClick={() => handleSelectBudget("2500+")}
+        >
+          High
+          <br />
+          2500+ USD
+        </button>
+      </div>
       <p className="text-red-500">{errors.plannedSpending?.message}</p>
 
-      <label>Describe the intention of your trip</label>
+      <label className="font-semibold mt-4">
+        Describe the intention of your trip
+      </label>
       <textarea
         {...register("description")}
         rows={4}
@@ -77,8 +220,8 @@ export default function Form(props: FormProps) {
       />
       <p className="text-red-500">{errors.description?.message}</p>
 
+      <label className="font-semibold mt-4">Start and end date of trip</label>
       <DateRangePicker
-        label="Start and end date of trip"
         minValue={today(getLocalTimeZone())}
         onChange={(v) => {
           setValue("startDate", v.start.toString());
@@ -98,4 +241,7 @@ export default function Form(props: FormProps) {
       <p className="text-gray-600">* We support trips of up to 5 days</p>
     </form>
   );
+}
+function setSelectedActivities(arg0: (prev: any) => any) {
+  throw new Error("Function not implemented.");
 }
