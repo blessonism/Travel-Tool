@@ -6,7 +6,7 @@ export default function Page() {
     <main className="flex flex-col gap-6 max-w-2xl">
       <section className="flex flex-col gap-4  items-start">
         <h1 className="text-4xl lg:text-5xl font-bold">About us</h1>
-        <p className="font-medium">Welcome to WanderKit.net!</p>
+        <p className="font-medium">Welcome to Travel Ai Tool!</p>
         <p>
           We are passionate about crafting extraordinary travel experiences
           tailored specifically for you. With AI-powered planning, we offer
@@ -18,8 +18,8 @@ export default function Page() {
           culture enthusiast, we have got you covered.
         </p>
         <p>
-          Start exploring with WanderKit.net and let us bring your dream journey
-          to life.
+          Start exploring with Travel Ai Tool and let us bring your dream
+          journey to life.
         </p>
         <p>Happy travels!</p>
         <Link
@@ -33,8 +33,8 @@ export default function Page() {
         <Image
           src="/traveling.svg"
           alt="traveling"
-          width={500}
-          height={500}
+          width={700}
+          height={700}
           priority
         ></Image>
       </section>

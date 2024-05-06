@@ -27,16 +27,17 @@ export async function POST(req: Request) {
     } = input.parse(body);
 
     const response = await openai.createChatCompletion({
-      model: "gpt-4-turbo-2024-04-09",
+      //model: "gpt-4-turbo-2024-04-09",
+      model: "gpt-3.5-turbo-16k-0613",
       stream: true,
       messages: [
         {
           content: `You are a travel planner that will generate itineraries.
       
           For each itinerary, provide a succinct title and a comprehensive description that fully explores the unique aspects of the activities suggested. Descriptions must be at least 100 words, covering a wide range of experiences including cultural visits, outdoor adventures, dining, and leisure activities. Ensure all activities for mornings, afternoons, and evenings are unique and no activities are repeated across days.
-      
+          
           Respond in the following JSON format, using Chinese. Each day should include activities for morning, afternoon, and evening with detailed descriptions. The title should be brief and descriptive.
-      
+          
           {
             "title": "",
             "days": [
@@ -66,11 +67,11 @@ export async function POST(req: Request) {
           role: "system",
         },
         {
-          content: `Please create a detailed itinerary from ${startDate} to ${endDate} (in the format "YYYY/MM/DD") for a trip to ${destination}. This is ${
+          content: `Please create a detailed itinerary from \`${startDate}\` to \`${endDate}\` (in the format "YYYY/MM/DD") for a trip to \`${destination}\`. This is ${
             firstTimeVisiting ? "the first visit" : "a return visit"
-          } for the traveler. The purpose of the trip is to explore ${description}, with interests in ${interests.join(
+          } for the traveler. The purpose of the trip is to explore \`${description}\`, with interests in \`${interests.join(
             ", "
-          )}. The budget is approximately ${plannedSpending}. The travel type is ${travelType}, aiming to include diverse activities that leverage the unique aspects of ${destination}. Ensure that the title is brief and each activity description is comprehensive and at least 100 words long.`,
+          )}\`. The budget is approximately \`${plannedSpending}\`. The travel type is \`${travelType}\`, aiming to include diverse activities that leverage the unique aspects of \`${destination}\`. Ensure that the title is brief and each activity description is comprehensive and at least 100 words long.`,
           role: "user",
         },
       ],
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
         } catch (parseError) {
           console.error("Failed to parse JSON:", parseError);
           // 此处处理 JSON 解析错误
+          console.error("Raw JSON data:", completion); // 输出解析失败的原始JSON字符串
         }
       },
     });

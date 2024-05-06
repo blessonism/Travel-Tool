@@ -107,7 +107,7 @@ export default function Home() {
           </span>
         </h1>
         <p>
-          Explore with WanderKit AI: Your Custom Travel Planner! Personalized
+          Explore with Travel Ai: Your Custom Travel Planner! Personalized
           Itineraries Made Simple.
         </p>
       </section>
@@ -134,9 +134,9 @@ export default function Home() {
           <Image
             src="/travelers.svg"
             alt="travelers"
-            width={500}
-            height={500}
-            className="mt-6 w-auto h-auto"
+            width={700}
+            height={700}
+            className="mt-16 w-auto h-auto"
             priority
           />
           {isLoading && (
