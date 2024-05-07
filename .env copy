@@ -1,0 +1,19 @@
+# OPENAI API 访问密钥配置
+OPENAI_API_KEY = "sk-pTZcrgK9FPqDmmrj049d2c32Cf9c44E891Da7b9bB161474a"
+OPENAI_API_BASE= "https://openkey.cloud/v1"
+
+
+
+# DATABASE
+MONGODB_URI="mongodb+srv://suki513737:suki513737@cluster0.rulbh1z.mongodb.net/?retryWrites=true&w=majority"
+
+# STRIPE
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+
+# MAILERSEND
+MAILERSEND_API_KEY=""
+
+# DOMAIN
+URL="http://localhost:4000"
