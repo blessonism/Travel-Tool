@@ -23,24 +23,24 @@ export default function Form(props: FormProps) {
   });
 
   const [travelType, setTravelType] = useState("");
-  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
-  const activities = [
+  const interests = [
     "Beaches",
-    "City sightseeing",
-    "Outdoor adventures",
+    "City Sightseeing",
+    "Outdoor Adventures",
     "Festivals",
-    "Food exploration",
+    "Food Exploration",
     "Nightlife",
     "Shopping",
-    "Spa wellness",
+    "SPA Wellness",
   ];
 
   type BudgetRange = "0 - 1000" | "1000 - 2500" | "2500+";
 
   useEffect(() => {
-    setValue("activities", selectedActivities);
-  }, [selectedActivities, setValue]);
+    setValue("interests", selectedInterests);
+  }, [selectedInterests, setValue]);
 
   const [budgetRange, setBudgetRange] = useState<BudgetRange | "">("");
 
@@ -50,7 +50,7 @@ export default function Form(props: FormProps) {
   };
 
   const toggleActivity = (activity: string) => {
-    setSelectedActivities((prev) =>
+    setSelectedInterests((prev) =>
       prev.includes(activity)
         ? prev.filter((a) => a !== activity)
         : [...prev, activity]
@@ -68,12 +68,11 @@ export default function Form(props: FormProps) {
       onSubmit={handleSubmit(props.onSubmit)}
       //className="flex flex-col gap-2 lg:min-w-[400px]"
       className="flex flex-col gap-2 lg:min-w-[400px] bg-white p-4 shadow-lg rounded-lg"
-      //className="flex flex-col gap-2 lg:min-w-[400px] bg-white p-4 shadow-lg rounded-lg"
     >
       <label className="font-semibold">What city are you going to?</label>
       <input
         {...register("destination")}
-        className="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-indigo-500 transition"
+        className="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
         placeholder="Barcelona"
       />
       <p className="text-red-500 text-sm">{errors.destination?.message}</p>
@@ -88,7 +87,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
             travelType === "solo"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-blue-400 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           } w-32 h-16`}
           onClick={() => handleTravelTypeClick("solo")}
@@ -99,7 +98,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
             travelType === "couple"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-blue-400 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           } w-32 h-16`}
           onClick={() => handleTravelTypeClick("couple")}
@@ -110,7 +109,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
             travelType === "family"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-blue-400 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           } w-32 h-16`}
           onClick={() => handleTravelTypeClick("family")}
@@ -121,7 +120,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
             travelType === "friends"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-blue-400 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           } w-32 h-16`}
           onClick={() => handleTravelTypeClick("friends")}
@@ -135,7 +134,7 @@ export default function Form(props: FormProps) {
         {...register("firstTimeVisiting", {
           setValueAs: (v) => v === "true", // Converts the string 'true' to boolean true
         })}
-        className="border border-gray-400 p-2 rounded"
+        className="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
       >
         <option value="true">Yes</option>
         <option value="false">No</option>
@@ -147,18 +146,18 @@ export default function Form(props: FormProps) {
       </label>
       {/* Activity selection buttons */}
       <div className="grid grid-cols-4 gap-4 mt-4">
-        {activities.map((activity) => (
+        {interests.map((interests) => (
           <button
-            key={activity}
+            key={interests}
             type="button"
-            onClick={() => toggleActivity(activity)}
+            onClick={() => toggleActivity(interests)}
             className={`p-2 border rounded transition-all ease-out duration-100 shadow-sm hover:shadow-md ${
-              selectedActivities.includes(activity)
-                ? "bg-blue-500 text-white"
+              selectedInterests.includes(interests)
+                ? "px-4 py-2 text-white rounded bg-gradient-to-br from-blue-300 to-indigo-200"
                 : "bg-gray-100 hover:bg-gray-200"
             } w-32 h-16`} // 控制最大宽度，以保持按钮不会过宽
           >
-            {activity}
+            {interests}
           </button>
         ))}
       </div>
@@ -172,7 +171,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
             budgetRange === "0 - 1000"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-green-300 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           }`}
           onClick={() => handleSelectBudget("0 - 1000")}
@@ -184,7 +183,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
             budgetRange === "1000 - 2500"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-yellow-200 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           }`}
           onClick={() => handleSelectBudget("1000 - 2500")}
@@ -197,7 +196,7 @@ export default function Form(props: FormProps) {
           type="button"
           className={`p-2 border rounded transition-all duration-200 ease-in-out shadow-sm ${
             budgetRange === "2500+"
-              ? "bg-blue-500 text-white"
+              ? "px-4 py-2 text-white rounded bg-gradient-to-br from-red-300 to-indigo-300"
               : "bg-gray-100 hover:bg-gray-200"
           }`}
           onClick={() => handleSelectBudget("2500+")}
@@ -215,7 +214,7 @@ export default function Form(props: FormProps) {
       <textarea
         {...register("description")}
         rows={4}
-        className="border border-gray-400 p-2 rounded"
+        className="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
         placeholder="Family trip with lots of nice dinners"
       />
       <p className="text-red-500">{errors.description?.message}</p>

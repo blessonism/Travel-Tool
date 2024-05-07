@@ -39,7 +39,7 @@ export default function RootLayout({
       <body
         className={cn(
           openSans.className,
-          "p-6 lg:p-12 md:max-w-xl lg:max-w-7xl mx-auto"
+          "p-4 lg:p-12 md:max-w-xl lg:max-w-7xl mx-auto"
         )}
       >
         <Header />

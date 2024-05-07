@@ -29,10 +29,10 @@ export default async function Itinerary({ params }: ItineraryProps) {
         <p className="max-w-md text-center">
           If this is not what you expect, please contact me{" "}
           <a
-            href="levi.schouten.werk@gmail.com"
+            href="suki513737@gmail.com"
             className="underline underline-offset-2"
           >
-            levi.schouten.werk@gmail.com
+            suki513737@gmail.com
           </a>
         </p>
       </main>
