@@ -1,6 +1,6 @@
 ---
 title: How to Make an Itinerary for Your Dream Trip
-date: August 4, 2023
+date: May 21, 2024
 description: Planning a trip can be an exciting but daunting task. Crafting a well-structured itinerary ensures that you make the most of your travel experience and don't miss out on any of the fantastic opportunities your destination has to offer. In this blog, we'll guide you through the process of creating a comprehensive itinerary that maximizes your enjoyment and minimizes the stress of travel.
 ---
 

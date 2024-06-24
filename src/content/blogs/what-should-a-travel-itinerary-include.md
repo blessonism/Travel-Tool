@@ -1,6 +1,6 @@
 ---
 title: What Should a Travel Itinerary Include
-date: August 4, 2023
+date: May 21, 2024
 description: A comprehensive guide on essential elements to include in a well-structured travel itinerary.
 ---
 

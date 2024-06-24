@@ -1,6 +1,6 @@
 ---
 title: How to Write Itineraries
-date: August 4, 2023
+date: May 21, 2024
 description: A comprehensive guide on crafting engaging and well-structured travel itineraries.
 ---
 

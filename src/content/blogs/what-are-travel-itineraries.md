@@ -1,6 +1,6 @@
 ---
 title: What Are Travel Itineraries
-date: August 4, 2023
+date: May 21, 2024
 description: A comprehensive exploration of travel itineraries and their importance in trip planning.
 ---
 
