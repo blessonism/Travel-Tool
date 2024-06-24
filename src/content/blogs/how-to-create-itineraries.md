@@ -1,6 +1,6 @@
 ---
 title: How to Create Itineraries
-date: August 4, 2023
+date: May 21, 2024
 description: A step-by-step guide to crafting well-planned and personalized travel itineraries for your dream trip.
 ---
 
