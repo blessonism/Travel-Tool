@@ -1,6 +1,6 @@
 import { Configuration, OpenAIApi } from "openai-edge";
 import { NextResponse } from "next/server";
-import { output, input, createItineraries } from "@/app/schema";
+import { output, input } from "@/app/schema";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 
 const config = new Configuration({
@@ -13,117 +13,110 @@ export const runtime = "edge";
 
 export async function POST(req: Request) {
   try {
+    // 解析请求体
     const body = await req.json();
+    if (!body) {
+      throw new Error("Request body is empty");
+    }
 
-    const {
-      description,
-      destination,
-      endDate,
-      startDate,
-      firstTimeVisiting,
-      plannedSpending,
-      travelType,
-      interests,
-    } = input.parse(body);
+    // 验证输入数据
+    const validatedBody = input.parse(body);
+    if (!validatedBody) {
+      throw new Error("Invalid input data");
+    }
 
+    // 构建 prompt
+    const prompt = `请为以下旅行生成行程：
+    目的地: ${validatedBody.destination}
+    描述: ${validatedBody.description}
+    开始日期: ${validatedBody.startDate}
+    结束日期: ${validatedBody.endDate}
+    首次访问: ${validatedBody.firstTimeVisiting ? "是" : "否"}
+    预算: ${validatedBody.plannedSpending}
+    旅行类型: ${validatedBody.travelType}
+    兴趣: ${validatedBody.interests.join(", ")}`;
+
+    // 调用 API
     const response = await openai.createChatCompletion({
-      //model: "gpt-4-turbo-2024-04-09",
-      model: "gpt-4o",
-      stream: true,
+      model: "gpt-4o-mini",
       messages: [
         {
-          content: `You are a travel planner that will generate itineraries.
-      
-          For each itinerary, provide a succinct title and a comprehensive description that fully explores the unique aspects of the activities suggested. Descriptions must be at least 100 words, covering a wide range of experiences including cultural visits, outdoor adventures, dining, and leisure activities. Ensure all activities for mornings, afternoons, and evenings are unique and no activities are repeated across days.
-          
-          Respond in the following JSON format, using Chinese. Each day should include activities for morning, afternoon, and evening with detailed descriptions. The title should be brief and descriptive.
-          
+          role: "system",
+          content: `你是一个专业的旅行规划师。请根据用户提供的信息，生成详细的旅行行程。请确保返回的是有效的 JSON 格式，不要包含任何其他文本。JSON结构如下：
           {
-            "title": "",
+            "title": "行程标题",
             "days": [
               {
-                "date": "",
+                "date": "日期 (YYYY/MM/DD)",
                 "activities": [
                   {
-                    "time": "morning",
-                    "description": "",
-                    "title": ""
-                  },
-                  {
-                    "time": "afternoon",
-                    "description": "",
-                    "title": ""
-                  },
-                  {
-                    "time": "evening",
-                    "description": "",
-                    "title": ""
+                    "time": "时间段",
+                    "title": "活动标题",
+                    "description": "活动描述（不要包含换行符）"
                   }
                 ]
               }
             ]
-          }
-          `,
-          role: "system",
+          }`,
         },
         {
-          content: `Please create a detailed itinerary from \`${startDate}\` to \`${endDate}\` (in the format "YYYY/MM/DD") for a trip to \`${destination}\`. This is ${
-            firstTimeVisiting ? "the first visit" : "a return visit"
-          } for the traveler. The purpose of the trip is to explore \`${description}\`, with interests in \`${interests.join(
-            ", "
-          )}\`. The budget is approximately \`${plannedSpending}\`. The travel type is \`${travelType}\`, aiming to include diverse activities that leverage the unique aspects of \`${destination}\`. Ensure that the title is brief and each activity description is comprehensive and at least 100 words long.`,
           role: "user",
+          content: prompt,
         },
       ],
+      temperature: 0.7,
+      stream: true,
     });
 
+    // 处理流式响应
+    let jsonBuffer = '';
     const stream = OpenAIStream(response, {
-      async onCompletion(completion: string) {
+      onToken: async (token: string) => {
+        jsonBuffer += token;
+      },
+      onCompletion: async (completion: string) => {
         try {
-          const parsedCompletion = output.parse(JSON.parse(completion));
+          // 尝试解析完整的 JSON
+          const parsed = JSON.parse(completion);
+          
+          // 清理描述文本中的换行符
+          if (parsed.days) {
+            parsed.days.forEach((day: any) => {
+              if (day.activities) {
+                day.activities.forEach((activity: any) => {
+                  if (activity.description) {
+                    activity.description = activity.description.replace(/[\n\r]+/g, ' ').trim();
+                  }
+                });
+              }
+            });
+          }
 
-          const createInput = createItineraries.parse({
-            title: parsedCompletion.title,
-            days: parsedCompletion.days,
-            startDate,
-            endDate,
-            description,
-            destination,
-            firstTimeVisiting,
-            plannedSpending,
-            travelType,
-            interests,
-            activated: false,
-          });
-
-          fetch(`${process.env.URL}/api/itinerary`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(createInput),
-          });
-        } catch (parseError) {
-          console.error("Failed to parse JSON:", parseError);
-          // 此处处理 JSON 解析错误
-          console.error("Raw JSON data:", completion); // 输出解析失败的原始JSON字符串
+          // 验证数据结构
+          output.parse(parsed);
+        } catch (error) {
+          console.error("JSON processing error:", error);
+          console.log("Raw completion:", completion);
         }
       },
     });
 
     return new StreamingTextResponse(stream);
-  } catch (error) {
-    // 获取 API 密钥的后四位
-    const apiKeySuffix = process.env.OPENAI_API_KEY?.slice(-4);
+  } catch (error: unknown) {
+    console.error("API Error:", error);
+    
+    // 构建详细的错误响应
+    const errorResponse = {
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+      type: error instanceof Error ? error.constructor.name : 'Unknown',
+      details: error instanceof Error ? error.stack : undefined,
+      apiKey: process.env.OPENAI_API_KEY ? `...${process.env.OPENAI_API_KEY.slice(-4)}` : 'undefined',
+      apiBase: process.env.OPENAI_API_BASE || 'undefined'
+    };
 
-    console.error(
-      `Error calling OpenAI API with key ending in ${apiKeySuffix}:`,
-      error
-    );
-
-    // 返回错误响应
     return NextResponse.json(
       {
-        message:
-          "something went wrong, Error calling OpenAI API with key ending in ${apiKeySuffix}",
+        error: errorResponse,
         ok: false,
       },
       { status: 500 }

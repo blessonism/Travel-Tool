@@ -1,6 +1,6 @@
 # OPENAI API 访问密钥配置
-OPENAI_API_KEY = "sk-pTZcrgK9FPqDmmrj049d2c32Cf9c44E891Da7b9bB161474a"
-OPENAI_API_BASE= "https://openkey.cloud/v1"
+OPENAI_API_KEY = "sk-AE7JVkczC40ea8uDD8203eE3445f4687A395F2BfC15d59D4"
+OPENAI_API_BASE= "https://api.vveai.com/v1"
 
 
 

@@ -8,8 +8,9 @@ import Image from "next/image";
 import ProgressBar from "@/components/ProgressBar";
 import cn from "classnames";
 import { toasts } from "@/components/Toast";
-import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import { ExclamationTriangleIcon, BookmarkIcon } from "@heroicons/react/20/solid";
 import { useCompletion } from "ai/react";
+import Link from "next/link";
 
 function addErrorToast(title: string, description: string) {
   toasts.add(
@@ -29,6 +30,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [itinerary, setItinerary] = React.useState<Output | null>(null);
   const [progress, setProgress] = React.useState(0);
+  const [formData, setFormData] = React.useState<Input | null>(null);
 
   const { complete } = useCompletion({
     api: "/api/generate",
@@ -37,6 +39,7 @@ export default function Home() {
   const createItinerary = async (data: Input) => {
     setItinerary(null);
     setIsLoading(true);
+    setFormData(data);
 
     // progress bar simulation
     const interval = setInterval(() => {
@@ -54,12 +57,27 @@ export default function Home() {
       });
 
       if (!completion) {
-        throw new Error("Something went wrong");
+        throw new Error("生成行程失败");
       }
 
-      setItinerary(output.parse(JSON.parse(completion)));
+      try {
+        const parsedData = JSON.parse(completion);
+        // 确保所有描述文本不包含换行符
+        parsedData.days.forEach((day: any) => {
+          day.activities.forEach((activity: any) => {
+            activity.description = activity.description.replace(/\n/g, ' ');
+          });
+        });
+        setItinerary(output.parse(parsedData));
+      } catch (parseError) {
+        console.error("JSON 解析错误:", parseError);
+        throw new Error("行程数据格式错误");
+      }
     } catch (error) {
-      addErrorToast("Failed to create itinerary", "Please try again.");
+      addErrorToast(
+        "生成行程失败",
+        error instanceof Error ? error.message : "请稍后重试"
+      );
     }
 
     setProgress(0);
@@ -70,12 +88,21 @@ export default function Home() {
   return (
     <main className="flex flex-col w-full stretch gap-12">
       <section className="flex flex-col gap-2">
-        <h1 className="text-4xl lg:text-5xl font-bold">
-          Your Smart Travel{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-indigo-500">
-            Itinerary Generator
-          </span>
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl lg:text-5xl font-bold">
+            Your Smart Travel{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-indigo-500">
+              Itinerary Generator
+            </span>
+          </h1>
+          <Link
+            href="/saved"
+            className="flex items-center gap-2 px-4 py-2 text-indigo-500 hover:text-indigo-600 transition-colors"
+          >
+            <BookmarkIcon className="h-5 w-5" />
+            已保存行程
+          </Link>
+        </div>
         <p>
           Explore with Travel Ai: Your Custom Travel Planner! Personalized
           Itineraries Made Simple.
@@ -120,8 +147,16 @@ export default function Home() {
             </div>
           )}
         </section>
-        {itinerary && (
-          <Itinerary itinerary={itinerary} />
+        {itinerary && formData && (
+          <Itinerary
+            itinerary={itinerary}
+            destination={formData.destination}
+            description={formData.description}
+            firstTimeVisiting={formData.firstTimeVisiting}
+            plannedSpending={formData.plannedSpending}
+            travelType={formData.travelType}
+            interests={formData.interests}
+          />
         )}
       </div>
     </main>
