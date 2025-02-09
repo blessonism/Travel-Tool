@@ -20,9 +20,18 @@ type FormProps = {
   disabled: boolean;
   onWeatherChange?: (weather: WeatherData | null, isLoading: boolean, error?: string) => void;
   initialData?: Input | null;
+  weatherCache?: Record<string, WeatherData>;
+  onUpdateWeatherCache?: (city: string, data: WeatherData) => void;
 };
 
-export default function Form({ onSubmit, disabled, onWeatherChange, initialData }: FormProps) {
+export default function Form({ 
+  onSubmit, 
+  disabled, 
+  onWeatherChange, 
+  initialData,
+  weatherCache = {},
+  onUpdateWeatherCache
+}: FormProps) {
   const {
     register,
     handleSubmit,
@@ -61,6 +70,93 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
     setValue('destination', city);
   };
 
+  // 添加自动生成描述的函数
+  const generateDescription = () => {
+    const city = watch('destination');
+    const type = watch('travelType');
+    const budget = watch('plannedSpending');
+    const isFirstTime = watch('firstTimeVisiting');
+    const selectedActivities = watch('interests');
+
+    // 旅行类型的中文映射
+    const travelTypeMap: Record<string, string> = {
+      'solo': '一个人的探索之旅',
+      'couple': '浪漫的双人世界',
+      'family': '温馨的亲子时光',
+      'friends': '欢乐的友情之旅'
+    };
+
+    // 预算等级的描述映射
+    const budgetMap: Record<string, string> = {
+      '0 - 1000': '体验当地特色与文化',
+      '1000 - 2500': '寻找舒适与品质',
+      '2500+': '追求精致与奢华'
+    };
+
+    // 活动类型的中文映射
+    const activityMap: Record<string, string> = {
+      'Beaches': '海滩度假',
+      'City Sightseeing': '城市观光',
+      'Outdoor Adventures': '户外探险',
+      'Festivals': '节日活动',
+      'Food Exploration': '美食探索',
+      'Nightlife': '夜生活',
+      'Shopping': '购物体验',
+      'SPA Wellness': '休闲养生'
+    };
+
+    let description = '';
+    
+    // 根据不同场景生成个性化描述
+    if (city) {
+      const randomStart = [
+        `期待在${city}开启一段${travelTypeMap[type] || '难忘的旅程'}`,
+        `想要在${city}创造一段${travelTypeMap[type] || '美好的回忆'}`,
+        `计划前往${city}，开启一场${travelTypeMap[type] || '精彩的冒险'}`
+      ][Math.floor(Math.random() * 3)];
+
+      description = randomStart;
+
+      // 添加首次访问相关描述
+      if (isFirstTime) {
+        const firstTimeDesc = [
+          '，初次造访这座城市，希望能够深入体验当地文化',
+          '，第一次来这里，想要发现城市的独特魅力',
+          '，作为第一次到访的旅行者，期待感受这里的一切'
+        ][Math.floor(Math.random() * 3)];
+        description += firstTimeDesc;
+      }
+      
+      // 添加活动相关描述
+      if (selectedActivities && selectedActivities.length > 0) {
+        const activities = selectedActivities
+          .slice(0, 2)
+          .map(act => activityMap[act])
+          .filter(Boolean);
+        
+        if (activities.length > 0) {
+          description += `。特别想要${activities.join('和')}`;
+        }
+      }
+      
+      // 添加预算相关描述
+      if (budget) {
+        description += `，打算${budgetMap[budget] || '好好享受这次旅程'}`;
+      }
+      
+      description += '。';
+    } else {
+      // 当没有选择城市时的默认描述
+      description = [
+        '想要开启一段说走就走的旅行，感受不一样的人文风景。',
+        '期待一次令人期待的旅程，创造独特的旅行记忆。',
+        '准备来一场说走就走的旅行，探索未知的精彩。'
+      ][Math.floor(Math.random() * 3)];
+    }
+
+    setValue('description', description);
+  };
+
   useEffect(() => {
     if (initialData) {
       setValue("destination", initialData.destination);
@@ -96,8 +192,9 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
 
     const trimmedDestination = destination.trim();
 
-    // 如果当前城市已经成功获取过天气，不再重复请求
-    if (trimmedDestination === lastFetchedCity.current) {
+    // 检查缓存中是否已有该城市的天气数据
+    if (weatherCache[trimmedDestination]) {
+      onWeatherChange(weatherCache[trimmedDestination], false, undefined);
       return;
     }
 
@@ -119,9 +216,11 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
     timeoutRef.current = setTimeout(async () => {
       try {
         const data = await getCurrentWeather(trimmedDestination);
+        // 更新缓存
+        if (onUpdateWeatherCache) {
+          onUpdateWeatherCache(trimmedDestination, data);
+        }
         onWeatherChange(data, false, undefined);
-        // 记录成功获取天气的城市
-        lastFetchedCity.current = trimmedDestination;
         // 如果之前失败过，从失败列表中移除
         failedCities.current.delete(trimmedDestination);
       } catch (error) {
@@ -130,8 +229,6 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
         console.error('Weather fetch error:', error);
         // 记录请求失败的城市
         failedCities.current.add(trimmedDestination);
-        // 清除上次成功的城市记录
-        lastFetchedCity.current = "";
       }
     }, 1000);
 
@@ -141,7 +238,7 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [destination, onWeatherChange]);
+  }, [destination, onWeatherChange, weatherCache, onUpdateWeatherCache]);
 
   const [budgetRange, setBudgetRange] = useState<BudgetRange | "">(
     (initialData?.plannedSpending as BudgetRange) || ""
@@ -317,12 +414,21 @@ export default function Form({ onSubmit, disabled, onWeatherChange, initialData 
       <label className="font-semibold mt-4 text-lg">
         Describe the intention of your trip
       </label>
-      <textarea
-        {...register("description")}
-        rows={4}
-        className="border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-base"
-        placeholder="Family trip with lots of nice dinners"
-      />
+      <div className="relative">
+        <textarea
+          {...register("description")}
+          rows={4}
+          className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-base pr-12"
+          placeholder="Family trip with lots of nice dinners"
+        />
+        <button
+          type="button"
+          onClick={generateDescription}
+          className="absolute right-3 top-3 text-gray-400 hover:text-indigo-500 transition-colors"
+        >
+          <SparklesIcon className="h-5 w-5" />
+        </button>
+      </div>
       <p className="text-red-500">{errors.description?.message}</p>
 
       <label className="font-semibold mt-4 text-lg">Start and end date of trip</label>
