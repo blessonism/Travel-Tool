@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     const response = await openai.createChatCompletion({
       //model: "gpt-4-turbo-2024-04-09",
-      model: "gpt-3.5-turbo-16k-0613",
+      model: "gpt-4o",
       stream: true,
       messages: [
         {

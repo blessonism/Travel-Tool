@@ -4,7 +4,6 @@ import { Input, output, Output } from "./schema";
 import React, { useMemo } from "react";
 import Form from "./components/Form";
 import Itinerary from "./components/Itinerary";
-import { getStripe } from "@/lib/stripe";
 import Image from "next/image";
 import ProgressBar from "@/components/ProgressBar";
 import cn from "classnames";
@@ -34,35 +33,6 @@ export default function Home() {
   const { complete } = useCompletion({
     api: "/api/generate",
   });
-
-  const handlePayment = async () => {
-    try {
-      if (!itinerary) {
-        throw new Error("Something went wrong");
-      }
-
-      const response = await fetch("api/checkout/", {
-        method: "post",
-        // body: JSON.stringify({ inputId: <id> }), ID not available for now
-      });
-
-      const json = await response.json();
-
-      if (!json.ok) {
-        throw new Error("Something went wrong");
-      }
-
-      const stripe = await getStripe();
-
-      if (!stripe) {
-        throw new Error("Something went wrong");
-      }
-
-      await stripe.redirectToCheckout({ sessionId: json.result.id });
-    } catch (error) {
-      addErrorToast("Failed to start transaction", "Please try again.");
-    }
-  };
 
   const createItinerary = async (data: Input) => {
     setItinerary(null);
@@ -151,7 +121,7 @@ export default function Home() {
           )}
         </section>
         {itinerary && (
-          <Itinerary itinerary={itinerary} onSubmit={handlePayment} />
+          <Itinerary itinerary={itinerary} />
         )}
       </div>
     </main>
