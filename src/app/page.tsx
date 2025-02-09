@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, output, Output } from "./schema";
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import Form from "./components/Form";
 import Itinerary from "./components/Itinerary";
 import Image from "next/image";
@@ -44,10 +44,31 @@ export default function Home() {
   const [isLoadingWeather, setIsLoadingWeather] = React.useState(false);
   const [weatherError, setWeatherError] = React.useState<string>();
   const [showForm, setShowForm] = React.useState(true);
+  // 添加天气数据缓存
+  const [weatherCache, setWeatherCache] = React.useState<Record<string, WeatherData>>({});
 
   const { complete } = useCompletion({
     api: "/api/generate",
   });
+
+  // 处理天气数据变化的回调函数
+  const handleWeatherChange = useCallback((
+    weatherData: WeatherData | null,
+    loading: boolean,
+    error?: string
+  ) => {
+    setWeather(weatherData);
+    setIsLoadingWeather(loading);
+    setWeatherError(error);
+  }, []);
+
+  // 更新天气缓存的函数
+  const updateWeatherCache = useCallback((city: string, data: WeatherData) => {
+    setWeatherCache(prev => ({
+      ...prev,
+      [city]: data
+    }));
+  }, []);
 
   const createItinerary = async (data: Input) => {
     setIsLoading(true);
@@ -165,15 +186,13 @@ export default function Home() {
             >
               <Form 
                 onSubmit={(data) => {
-                  setShowForm(false);  // 立即切换到查看页面
+                  setShowForm(false);
                   createItinerary(data);
                 }}
                 disabled={isLoading}
-                onWeatherChange={(w, loading, error) => {
-                  setWeather(w);
-                  setIsLoadingWeather(loading);
-                  setWeatherError(error);
-                }}
+                onWeatherChange={handleWeatherChange}
+                weatherCache={weatherCache}
+                onUpdateWeatherCache={updateWeatherCache}
                 initialData={formData}
               />
             </section>
@@ -275,6 +294,7 @@ export default function Home() {
                       plannedSpending={formData.plannedSpending}
                       travelType={formData.travelType}
                       interests={formData.interests}
+                      weather={weather}
                     />
                   </div>
                 ) : null}

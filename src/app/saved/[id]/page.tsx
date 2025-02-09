@@ -7,6 +7,8 @@ import { ArrowLeftIcon, ShareIcon, CheckIcon } from '@heroicons/react/20/solid';
 import { format } from 'date-fns';
 import cn from 'classnames';
 import { toasts } from '@/components/Toast';
+import WeatherInfo from '@/components/WeatherInfo';
+import { WeatherData } from '@/services/weather';
 
 interface SavedItinerary extends Output {
   id: string;
@@ -17,6 +19,7 @@ interface SavedItinerary extends Output {
   plannedSpending?: string;
   travelType?: string;
   interests?: string[];
+  weather?: WeatherData | null;
 }
 
 export default function ItineraryDetail({
@@ -187,6 +190,26 @@ export default function ItineraryDetail({
             </div>
           </div>
         </section>
+
+        {/* 添加天气信息部分 */}
+        {itinerary.weather && (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold">天气信息</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+              <h3 className="text-xl font-semibold mb-6">
+                {itinerary.weather.city.name} 天气预报
+                <span className="text-sm text-gray-500 ml-2">
+                  (保存于 {format(new Date(itinerary.savedAt), 'yyyy-MM-dd HH:mm')})
+                </span>
+              </h3>
+              <WeatherInfo
+                weather={itinerary.weather}
+                isLoading={false}
+                error={undefined}
+              />
+            </div>
+          </section>
+        )}
 
         {/* 行程详情 */}
         <section className="space-y-8">

@@ -3,6 +3,7 @@ import cn from "classnames";
 import { BookmarkIcon } from "@heroicons/react/20/solid";
 import { useCallback, useState } from "react";
 import { toasts } from "@/components/Toast";
+import { WeatherData } from '@/services/weather';
 
 type ItineraryProps = {
   itinerary: Output;
@@ -12,6 +13,7 @@ type ItineraryProps = {
   plannedSpending?: string;
   travelType?: string;
   interests?: string[];
+  weather?: WeatherData | null;
 };
 
 export default function Itinerary({
@@ -22,6 +24,7 @@ export default function Itinerary({
   plannedSpending = "",
   travelType = "",
   interests = [],
+  weather = null,
 }: ItineraryProps) {
   const [selectedDay, setSelectedDay] = useState(0);
 
@@ -37,7 +40,8 @@ export default function Itinerary({
         firstTimeVisiting,
         plannedSpending,
         travelType,
-        interests
+        interests,
+        weather
       };
       savedItineraries.push(itineraryToSave);
       localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
@@ -66,7 +70,7 @@ export default function Itinerary({
         </div>
       );
     }
-  }, [itinerary, destination, description, firstTimeVisiting, plannedSpending, travelType, interests]);
+  }, [itinerary, destination, description, firstTimeVisiting, plannedSpending, travelType, interests, weather]);
 
   return (
     <section className="flex flex-col gap-4 items-start flex-1 w-full max-w-none h-auto">
