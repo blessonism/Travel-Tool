@@ -17,12 +17,39 @@ const CITY_MAP: Record<string, string> = {
   '上海': 'Shanghai,CN',
   '广州': 'Guangzhou,CN',
   '深圳': 'Shenzhen,CN',
-  '南昌': 'Nanchang,CN',
-  '杭州': 'Hangzhou,CN',
   '成都': 'Chengdu,CN',
+  '杭州': 'Hangzhou,CN',
+  '西安': 'Xian,CN',
   '重庆': 'Chongqing,CN',
+  '南京': 'Nanjing,CN',
   '武汉': 'Wuhan,CN',
-  '西安': 'Xian,CN'
+  '厦门': 'Xiamen,CN',
+  '青岛': 'Qingdao,CN',
+  '大理': 'Dali,CN',
+  '丽江': 'Lijiang,CN',
+  '三亚': 'Sanya,CN',
+  '长沙': 'Changsha,CN',
+  '昆明': 'Kunming,CN',
+  '贵阳': 'Guiyang,CN',
+  '桂林': 'Guilin,CN',
+  '南宁': 'Nanning,CN',
+  '海口': 'Haikou,CN',
+  '天津': 'Tianjin,CN',
+  '沈阳': 'Shenyang,CN',
+  '大连': 'Dalian,CN',
+  '哈尔滨': 'Harbin,CN',
+  '长春': 'Changchun,CN',
+  '太原': 'Taiyuan,CN',
+  '济南': 'Jinan,CN',
+  '郑州': 'Zhengzhou,CN',
+  '合肥': 'Hefei,CN',
+  '南昌': 'Nanchang,CN',
+  '福州': 'Fuzhou,CN',
+  '兰州': 'Lanzhou,CN',
+  '西宁': 'Xining,CN',
+  '银川': 'Yinchuan,CN',
+  '乌鲁木齐': 'Urumqi,CN',
+  '拉萨': 'Lhasa,CN'
 };
 
 export interface WeatherData {
@@ -49,56 +76,143 @@ export interface WeatherData {
   }>;
 }
 
+// 添加工具函数来处理天气数据
+function processDailyWeather(data: WeatherData): WeatherData {
+  // 按日期分组
+  const dailyData = data.list.reduce((acc, item) => {
+    const date = item.dt_txt.split(' ')[0];
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(item);
+    return acc;
+  }, {} as Record<string, typeof data.list>);
+
+  // 处理每天的数据
+  const processedList = Object.entries(dailyData).map(([date, items]) => {
+    // 计算平均温度和体感温度
+    const avgTemp = items.reduce((sum, item) => sum + item.main.temp, 0) / items.length;
+    const avgFeelsLike = items.reduce((sum, item) => sum + item.main.feels_like, 0) / items.length;
+    const avgHumidity = items.reduce((sum, item) => sum + item.main.humidity, 0) / items.length;
+    const avgWindSpeed = items.reduce((sum, item) => sum + item.wind.speed, 0) / items.length;
+
+    // 选择天气状况（优先选择白天的天气）
+    const dayWeather = items.find(item => {
+      const hour = parseInt(item.dt_txt.split(' ')[1].split(':')[0]);
+      return hour >= 9 && hour <= 18;
+    }) || items[0];
+
+    return {
+      dt: dayWeather.dt,
+      main: {
+        temp: Math.round(avgTemp * 10) / 10,
+        feels_like: Math.round(avgFeelsLike * 10) / 10,
+        humidity: Math.round(avgHumidity)
+      },
+      weather: dayWeather.weather,
+      wind: {
+        speed: Math.round(avgWindSpeed * 10) / 10
+      },
+      dt_txt: date + ' 12:00:00' // 统一设置为中午12点
+    };
+  });
+
+  // 只保留未来7天的数据
+  const sevenDaysList = processedList.slice(0, 7);
+
+  return {
+    ...data,
+    list: sevenDaysList
+  };
+}
+
 export async function getCurrentWeather(city: string): Promise<WeatherData> {
-  // 再次验证 API Key，确保运行时可用
-  if (!WEATHER_API_KEY || WEATHER_API_KEY.trim() === '') {
-    console.error('Weather API Key validation failed:', {
-      key: WEATHER_API_KEY,
-      length: WEATHER_API_KEY?.length
-    });
-    throw new Error('API Key 无效，请检查配置');
-  }
+  console.log('Weather service initialization:', {
+    city
+  });
 
   try {
     // 转换城市名称
-    const mappedCity = CITY_MAP[city] || city;
-    const url = `${BASE_URL}/forecast?q=${encodeURIComponent(mappedCity)}&appid=${WEATHER_API_KEY}&units=metric&lang=zh_cn&cnt=7`;
+    const mappedCity = CITY_MAP[city] || (city.includes(',') ? city : `${city},CN`);
+    const url = `/api/weather?city=${encodeURIComponent(mappedCity)}`;
     
-    console.log('Fetching weather data:', {
-      url: url.replace(WEATHER_API_KEY, '***'),
-      city: mappedCity,
+    console.log('Weather API request:', {
       originalCity: city,
-      hasApiKey: !!WEATHER_API_KEY
+      mappedCity,
+      url
     });
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Weather API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-        city: mappedCity,
-        url: url.replace(WEATHER_API_KEY, '***')
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-cache',
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Weather API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          details: data.details,
+          city: mappedCity,
+          originalCity: city
+        });
+        
+        throw new Error(data.error || `获取天气信息失败: ${response.status} ${response.statusText}`);
+      }
+
+      if (!data.city || !data.list) {
+        console.error('Invalid weather data format:', {
+          hasCity: !!data.city,
+          hasList: !!data.list,
+          data
+        });
+        throw new Error('天气数据格式无效');
+      }
+
+      // 处理天气数据，合并同一天的数据
+      const processedData = processDailyWeather(data);
+
+      console.log('Weather data received:', {
+        city: processedData.city.name,
+        country: processedData.city.country,
+        dataPoints: processedData.list.length
       });
       
-      if (response.status === 401) {
-        throw new Error('API Key 无效，请检查配置');
-      } else if (response.status === 404) {
-        throw new Error(`未找到城市"${city}"的天气信息，请尝试使用英文名称`);
-      } else if (response.status === 429) {
-        throw new Error('API 调用次数超限，请稍后重试');
-      }
-      
-      throw new Error(`获取天气信息失败: ${response.status} ${response.statusText}`);
+      return processedData;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      throw fetchError;
     }
-    
-    const data = await response.json();
-    console.log('Weather data received:', data);
-    return data;
   } catch (error) {
-    console.error('Weather service error:', error);
+    console.error('Weather service error:', {
+      error,
+      message: error instanceof Error ? error.message : '未知错误',
+      name: error instanceof Error ? error.name : undefined,
+      city,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('网络连接失败，请检查网络设置');
+    }
+
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('请求超时，请稍后重试');
+    }
+
     throw error instanceof Error ? error : new Error('获取天气信息失败');
   }
 }

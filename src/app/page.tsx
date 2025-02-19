@@ -2,7 +2,7 @@
 
 import { Input, output, Output } from "./schema";
 import React, { useMemo, useCallback } from "react";
-import Form from "./components/Form";
+import { FormContainer } from "@/components/form";
 import Itinerary from "./components/Itinerary";
 import Image from "next/image";
 import ProgressBar from "@/components/ProgressBar";
@@ -119,11 +119,6 @@ export default function Home() {
     clearInterval(interval);
   };
 
-  const getRandomCity = () => {
-    const randomIndex = Math.floor(Math.random() * POPULAR_CITIES.length);
-    return POPULAR_CITIES[randomIndex];
-  };
-
   return (
     <main className="flex flex-col w-full stretch gap-12">
       <section className="flex flex-col gap-2">
@@ -184,7 +179,7 @@ export default function Home() {
                 "lg:w-3/5 p-8 rounded-lg shadow-md border-indigo-500 mask relative backdrop-blur-2xl after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-br after:from-indigo-500/80 after:via-indigo-500/40 after:to-indigo-500/80 after:p-[3px]"
               )}
             >
-              <Form 
+              <FormContainer 
                 onSubmit={(data) => {
                   setShowForm(false);
                   createItinerary(data);
@@ -245,59 +240,32 @@ export default function Home() {
                 {isLoading ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="w-full max-w-md">
-                      <div className="flex flex-col gap-6 animate-pulse">
-                        {/* 标题加载动画 */}
-                        <div className="h-8 bg-gray-200 rounded-md w-3/4" />
-                        
-                        {/* 日期加载动画 */}
-                        <div className="flex gap-4">
-                          {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-10 bg-gray-200 rounded-md flex-1" />
-                          ))}
-                        </div>
-                        
-                        {/* 行程内容加载动画 */}
-                        <div className="space-y-4">
-                          {[...Array(4)].map((_, i) => (
-                            <div key={i} className="flex gap-4">
-                              <div className="w-16 h-4 bg-gray-200 rounded" />
-                              <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                                <div className="h-4 bg-gray-200 rounded w-full" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* 生成进度 */}
-                      <div className="mt-8 flex flex-col items-center gap-4">
-                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out"
-                            style={{ width: `${Math.min(progress * 3.3, 100)}%` }}
-                          />
-                        </div>
-                        <p className="text-gray-500 text-sm font-medium">
-                          AI正在为您生成个性化行程...
-                        </p>
-                      </div>
+                      <ProgressBar 
+                        value={progress} 
+                        label="生成进度"
+                      />
+                      <p className="text-center mt-4 text-gray-500">
+                        正在为您生成个性化行程...
+                      </p>
                     </div>
                   </div>
-                ) : itinerary && formData ? (
-                  <div className="flex-1 p-8 overflow-auto">
-                    <Itinerary
-                      itinerary={itinerary}
-                      destination={formData.destination}
-                      description={formData.description}
-                      firstTimeVisiting={formData.firstTimeVisiting}
-                      plannedSpending={formData.plannedSpending}
-                      travelType={formData.travelType}
-                      interests={formData.interests}
-                      weather={weather}
-                    />
+                ) : itinerary ? (
+                  <Itinerary
+                    itinerary={itinerary}
+                    destination={formData?.destination || ''}
+                    description={formData?.description || ''}
+                    firstTimeVisiting={formData?.firstTimeVisiting || false}
+                    plannedSpending={formData?.plannedSpending || ''}
+                    travelType={formData?.travelType || ''}
+                    interests={formData?.interests || []}
+                    weather={weather}
+                    onEdit={() => setShowForm(true)}
+                  />
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center p-8">
+                    <p className="text-gray-500">请先填写旅行信息</p>
                   </div>
-                ) : null}
+                )}
               </section>
             </div>
           </div>

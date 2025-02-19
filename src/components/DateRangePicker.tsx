@@ -15,7 +15,7 @@ import {
 } from "react-aria";
 import {
   DateFieldState,
-  DateSegment,
+  type DateSegment,
   RangeCalendarState,
   useDateFieldState,
   useDateRangePickerState,
@@ -244,8 +244,7 @@ export default function DateRangePicker(
         >
           <CalendarIcon className="w-6 h-6" />
         </Button>
-      </div>
-      <p className="text-red-500">{props.errorMessage}</p>
+      </div>    
       {state.isOpen && (
         <Popover state={state} triggerRef={ref} placement="bottom start">
           <Dialog {...dialogProps}>
