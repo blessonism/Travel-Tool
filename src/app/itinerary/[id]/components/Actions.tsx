@@ -5,6 +5,14 @@ import Button from "@/components/Button";
 import { CalendarIcon } from "@heroicons/react/20/solid";
 import ics, { DateArray, createEvents } from "ics";
 
+function capitalize(input: string) {
+  return input.charAt(0).toUpperCase() + input.slice(1);
+}
+
+type ActionsProps = {
+  itinerary: Itineraries;
+};
+
 function convertDatetoDateArray(
   date: Date,
   hour: number,
@@ -19,29 +27,25 @@ function convertDatetoDateArray(
   ];
 }
 
-function capitalize(input: string) {
-  return input.charAt(0).toUpperCase() + input.slice(1);
-}
-
-type ActionsProps = {
-  itinerary: Itineraries;
-};
-
 export default function Actions(props: ActionsProps) {
   const handlePress = async () => {
     const events: ics.EventAttributes[] = [];
 
-    props.itinerary.days.map((day) => {
+    props.itinerary.days?.forEach((day) => {
+      if (!day.date || !day.activities) return;
+      
       const date = new Date(day.date);
 
-      day.activities.map((activity) => {
+      day.activities.forEach((activity) => {
+        if (!activity.time || !activity.title || !activity.description) return;
+
         if (activity.time.toLowerCase() === "morning") {
           const event: ics.EventAttributes = {
             start: convertDatetoDateArray(date, 9, 0),
             duration: { hours: 3 },
             title: activity.title,
             description: activity.description,
-            location: capitalize(props.itinerary.destination),
+            location: capitalize(props.itinerary.destination || ""),
           };
 
           events.push(event);
@@ -53,7 +57,7 @@ export default function Actions(props: ActionsProps) {
             duration: { hours: 4 },
             title: activity.title,
             description: activity.description,
-            location: capitalize(props.itinerary.destination),
+            location: capitalize(props.itinerary.destination || ""),
           };
 
           events.push(event);
@@ -65,7 +69,7 @@ export default function Actions(props: ActionsProps) {
             duration: { hours: 4 },
             title: activity.title,
             description: activity.description,
-            location: capitalize(props.itinerary.destination),
+            location: capitalize(props.itinerary.destination || ""),
           };
 
           events.push(event);
@@ -77,7 +81,7 @@ export default function Actions(props: ActionsProps) {
             duration: { hours: 4 },
             title: activity.title,
             description: activity.description,
-            location: capitalize(props.itinerary.destination),
+            location: capitalize(props.itinerary.destination || ""),
           };
 
           events.push(event);
@@ -85,8 +89,9 @@ export default function Actions(props: ActionsProps) {
       });
     });
 
-    const filename =
-      props.itinerary.title.toLowerCase().replaceAll(" ", "_") + ".ics";
+    if (!props.itinerary.title) return;
+
+    const filename = props.itinerary.title.toLowerCase().replaceAll(" ", "_") + ".ics";
 
     const file: File = await new Promise((resolve, reject) => {
       createEvents(events, (error, value) => {

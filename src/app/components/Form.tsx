@@ -435,8 +435,10 @@ export default function Form({
       <DateRangePicker
         minValue={today(getLocalTimeZone())}
         onChange={(v) => {
-          setValue("startDate", v.start.toString());
-          setValue("endDate", v.end.toString());
+          if (v) {
+            setValue("startDate", v.start.toString());
+            setValue("endDate", v.end.toString());
+          }
         }}
         errorMessage={errors.startDate?.message || errors.endDate?.message}
       />
