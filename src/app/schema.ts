@@ -68,8 +68,7 @@ export const createItineraries = z.object({
         })
       ),
     })
-  ),
-  activated: z.boolean().default(false),
+  )
 });
 
 export const itineraries = createItineraries.deepPartial().extend({

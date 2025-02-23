@@ -2,15 +2,8 @@
 OPENAI_API_KEY = "sk-AE7JVkczC40ea8uDD8203eE3445f4687A395F2BfC15d59D4"
 OPENAI_API_BASE= "https://api.vveai.com/v1"
 
-
-
 # DATABASE
 MONGODB_URI="mongodb+srv://suki513737:suki513737@cluster0.rulbh1z.mongodb.net/?retryWrites=true&w=majority"
-
-# STRIPE
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
-STRIPE_SECRET_KEY=""
-STRIPE_WEBHOOK_SECRET=""
 
 # MAILERSEND
 MAILERSEND_API_KEY=""
